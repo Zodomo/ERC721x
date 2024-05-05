@@ -1,102 +1,66 @@
-# <ins>**ERC721x Contract**</ins>
+## Foundry
 
-This standard allows contract that implement the `ILock` interface to lock/unlock assets in place to enable/disable them from being transferred.
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-Notorious project using such implementation:
-- [CyberKongz](https://www.cyberkongz.com/)
-- [Memeland](https://www.memeland.com/)
-- [Keungz](https://keungz.com/)
+Foundry consists of:
 
-## <ins>How does this work?</ins>
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-The Lock Registry contains four mappings:
+## Documentation
 
-	mapping(address => bool) public approvedContract;
-	mapping(uint256 => uint256) public lockCount;
-	mapping(uint256 => mapping(uint256 => address)) public lockMap;
-	mapping(uint256 => mapping(address => uint256)) public lockMapIndex;
+https://book.getfoundry.sh/
 
-The first, `approvedContract`, is a mapping that checks if an address is allowed to lock/unlock assets from the collection. This mapping is updated by the owner of the contract (EOA or multisig for example).
+## Usage
 
-`lockCount` is a mapping that tracks how many locks a token possesses. As long as the lock count is > 0, the token cannot move. Once there are no more locks, the token is free to move once again.
+### Build
 
-`lockMap` and `lockMapIndex` work together.
+```shell
+$ forge build
+```
 
-`lockMap` is a double mapping that connects a token ID to the address that locked it. 
+### Test
 
-`lockMap[tokenId][lockIndex]` => contract that locked
+```shell
+$ forge test
+```
 
+### Format
 
-`lockMapIndex` is a double mapping that connects a token ID to the lockIndex of the adddress that locked it.
+```shell
+$ forge fmt
+```
 
-`lockMapIndex[tokenId][lockingContract]` => lock Index of locking contract
+### Gas Snapshots
 
-Those 2 mappings are necessary to easily track and delete lock when a contract unlocks a token.
+```shell
+$ forge snapshot
+```
 
-## <ins>Interface</ins>
+### Anvil
 
-The `IERC721x` interface is very simple:
+```shell
+$ anvil
+```
 
-	interface IERC721x {
+### Deploy
 
-		/**
-		* @dev Returns if the token is locked (non-transferrable) or not.
-		*/
-		function isUnlocked(uint256 _id) external view returns(bool);
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
 
-		/**
-		* @dev Returns the amount of locks on the token.
-		*/
-		function lockCount(uint256 _tokenId) external view returns(uint256);
+### Cast
 
-		/**
-		* @dev Returns if a contract is allowed to lock/unlock tokens.
-		*/
-		function approvedContract(address _contract) external view returns(bool);
+```shell
+$ cast <subcommand>
+```
 
-		/**
-		* @dev Returns the contract that locked a token at a specific index in the mapping.
-		*/
-		function lockMap(uint256 _tokenId, uint256 _index) external view returns(address);
+### Help
 
-		/**
-		* @dev Returns the mapping index of a contract that locked a token.
-		*/
-		function lockMapIndex(uint256 _tokenId, address _contract) external view returns(uint256);
-
-		/**
-		* @dev Locks a token, preventing it from being transferrable
-		*/
-		function lockId(uint256 _id) external;
-
-		/**
-		* @dev Unlocks a token.
-		*/
-		function unlockId(uint256 _id) external;
-
-		/**
-		* @dev Unlocks a token from a given contract if the contract is no longer approved.
-		*/
-		function freeId(uint256 _id, address _contract) external;
-	}
-
-An approved contract can lock or unlock an asset. Locking an asset twice will revert, same behaviour for double unlocking.
-
-`freeId` is an emergency function that can only be called under a specific condition. It behaves similarly to the `unlockId` function. It can only be called if the previously approved contract that locked the asset is no longer approved. This means that you will be required to change `approvedContract[badContract] => false` by calling `updateApprovedContracts` and unset the initially approved contract. This should only happen if the locking contract has bad logic and prevents people from unlocking assets. By disapproving the defective contract, we allow users to remove the lock to enable transferring their asset if they choose to.
-
-
-## <ins>What can it do?</ins>
-
-The lock registry is a vital tool in web3. It allows users to lock assets in place, which is the underlying condition of staking or securing assets. If assets cannot move, they cannot be stolen. The guarantee lock registry ensures is that assets cannot be transferred in staking mechanisms.
-A key example is [Play and Kollect experience created by CyberKongz](https://docs.cyberkongz.com/).
-
-When locking an asset, the token does not move to a contract to interact with it and therefore does not have to leave the owner's wallet. In addition to reducing contract risks, asset holders are given the option to engage in an unlimited number of previously approved locking contracts simultaneously, while always retaining true ownership of the asset.
-
-This allows for the creation of an onchain 2fa.
-Assets could reside on a hot wallet (metamask) but be secured by a guardian address that is a multisig or a HW wallet. This allows users to benefit from the flexibility of hot wallet interactions on metamask while also maintaining the high security of multisigs or HW wallets. Additionally, users would not longer need to click/sign endlessly. [A twitter experiment by Owl can be found here](https://twitter.com/OwlOfMoistness/status/1504203389915308048).
-
-An implementation has been created called the Guardian contract. [Repo can be found here](https://github.com/OwlOfMoistness/guardian-2fa-contract).
-
-## <ins>Checkout other similar implementations</ins>
-
-The talented devs over at [Samurise](https://twitter.com/SamuRiseNFT) have implemented a similar tech for their contracts, [Check here!](https://github.com/samurisenft/erc721nes-contracts)
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
