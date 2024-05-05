@@ -9,7 +9,7 @@ pragma solidity ^0.8.23;
  */
 
 import {ERC721} from "../../lib/solady/src/tokens/ERC721.sol";
-import {LockRegistry} from "../LockRegistry.sol";
+import {LockRegistry, Ownable} from "../LockRegistry.sol";
 import {IERC721x} from "../interfaces/IERC721x.sol";
 
 abstract contract ERC721x is ERC721, LockRegistry {
